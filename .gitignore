@@ -1,0 +1,28 @@
+# IDE files
+.classpath
+.project
+.settings/
+.idea/
+*.iml
+*.iws
+
+# Build and temp files
+.gradle
+.gradle/
+gradlew
+gradlew.bat
+/local.properties
+*.apk
+.DS_Store
+log/
+target/
+out/
+build/
+gen-external-apklibs/
+tmp/
+gradle/
+
+#Crashlytics
+com_crashlytics_export_strings.xml
+crashlytics-build.properties
+crashlytics.properties

@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">BTRemote</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_button_panel">Control Panel</string>
+    <string name="connected_to">Connected to %1$s</string>
+</resources>
