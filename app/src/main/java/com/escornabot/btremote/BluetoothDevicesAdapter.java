@@ -1,6 +1,5 @@
 package com.escornabot.btremote;
 
-import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,12 +9,12 @@ import android.widget.TextView;
 
 import java.util.List;
 
-public class BluetoothDevicesAdapter extends ArrayAdapter<BluetoothDevice> {
+public class BluetoothDevicesAdapter extends ArrayAdapter<Escornabot> {
 
     private int layoutResourceId;
 
     public BluetoothDevicesAdapter(Context context, int layoutResourceId,
-                                   List<BluetoothDevice> devices) {
+                                   List<Escornabot> devices) {
         super(context, layoutResourceId, devices);
         this.layoutResourceId = layoutResourceId;
     }
@@ -23,19 +22,10 @@ public class BluetoothDevicesAdapter extends ArrayAdapter<BluetoothDevice> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         View view = LayoutInflater.from(parent.getContext()).inflate(layoutResourceId, null);
-        BluetoothDevice device = getItem(position);
-
-        StringBuilder description = new StringBuilder();
-        if (!device.getName().isEmpty()) {
-            description.append(device.getName()).append("\n");
-        }
-
-        if (!device.getAddress().isEmpty()) {
-            description.append(device.getAddress());
-        }
+        Escornabot device = getItem(position);
 
         TextView descriptionView = (TextView) view.findViewById(R.id.description);
-        descriptionView.setText(description.toString());
+        descriptionView.setText(device.getName());
 
         return view;
     }

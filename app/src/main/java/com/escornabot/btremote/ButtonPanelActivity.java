@@ -1,104 +1,85 @@
 package com.escornabot.btremote;
 
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
-import android.support.v7.app.ActionBarActivity;
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v7.app.ActionBarActivity;
+import android.view.DragEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.CompoundButton;
+import android.widget.GridView;
 import android.widget.ImageButton;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.UUID;
+import android.widget.Switch;
+import android.widget.TextView;
 
 
 public class ButtonPanelActivity extends ActionBarActivity {
 
     public static final String EXTRA_DEVICE = "EXTRA_DEVICE";
-    UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
+    private EscornabotController controller;
 
-    private BluetoothDevice device;
-    private BluetoothSocket socket;
-    private OutputStream os;
-
-    private ImageButton upButton;
-    private ImageButton downButton;
-    private ImageButton leftButton;
-    private ImageButton rightButton;
-    private ImageButton goButton;
-    private ImageButton resetButton;
+    private CommandListAdapter commandAdapter;
+    private GridView commandBuffer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_button_panel);
 
-        device = getIntent().getParcelableExtra(EXTRA_DEVICE);
+        Escornabot escornabot = getIntent().getParcelableExtra(EXTRA_DEVICE);
+        controller = new EscornabotController(escornabot.getBtInterface());
 
+        ImageButton upButton = (ImageButton) findViewById(R.id.up);
+        ImageButton downButton = (ImageButton) findViewById(R.id.down);
+        ImageButton leftButton = (ImageButton) findViewById(R.id.left);
+        ImageButton rightButton = (ImageButton) findViewById(R.id.right);
+        ImageButton goButton = (ImageButton) findViewById(R.id.go);
+        ImageButton resetButton = (ImageButton) findViewById(R.id.reset);
 
-        try {
-            socket = device.createRfcommSocketToServiceRecord(uuid);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Switch interactiveModeSwitch = (Switch) findViewById(R.id.interactive_mode);
+        interactiveModeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                controller.setInteractive(isChecked);
+                if (isChecked) {
+                    commandBuffer.setVisibility(View.INVISIBLE);
+                } else {
+                    commandBuffer.setVisibility(View.VISIBLE);
+                }
+            }
+        });
 
-        upButton = (ImageButton) findViewById(R.id.up);
-        downButton = (ImageButton) findViewById(R.id.down);
-        leftButton = (ImageButton) findViewById(R.id.left);
-        rightButton = (ImageButton) findViewById(R.id.right);
-        goButton = (ImageButton) findViewById(R.id.go);
-        resetButton = (ImageButton) findViewById(R.id.reset);
+        commandBuffer = (GridView) findViewById(R.id.commandBuffer);
+        commandAdapter = new CommandListAdapter(this, controller.getCommandQueue());
+        commandBuffer.setAdapter(commandAdapter);
 
         upButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    os.write("n\n".getBytes());
-                    Log.d("BTRemote", "sent instructions n");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                addCommand(Command.up());
             }
         });
 
         downButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    os.write("s\n".getBytes());
-                    Log.d("BTRemote", "sent instructions s");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                addCommand(Command.down());
             }
         });
-
 
         leftButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    os.write("w\n".getBytes());
-                    Log.d("BTRemote", "sent instructions w");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                addCommand(Command.left());
             }
         });
-
 
         rightButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    os.write("e\n".getBytes());
-                    Log.d("BTRemote", "sent instructions e");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                addCommand(Command.right());
             }
         });
 
@@ -106,9 +87,8 @@ public class ButtonPanelActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    os.write("g\n".getBytes());
-                    Log.d("BTRemote", "sent instructions g");
-                } catch (IOException e) {
+                    controller.go();
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -118,35 +98,54 @@ public class ButtonPanelActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    os.write("r\n".getBytes());
-                    Log.d("BTRemote", "sent instructions r");
-                } catch (IOException e) {
+                    controller.reset();
+                    commandAdapter.notifyDataSetChanged();
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         });
 
+        TextView connectedToView = (TextView) findViewById(R.id.connectedTo);
+        connectedToView.setText(getString(R.string.connected_to, escornabot.getName()));
+
+        commandBuffer.setOnDragListener(new View.OnDragListener() {
+            @Override
+            public boolean onDrag(View v, DragEvent event) {
+                System.out.println(event.getAction());
+
+                if (event.getAction() == DragEvent.ACTION_DROP) {
+                    View view = (View) event.getLocalState();
+                    view.setVisibility(View.VISIBLE);
+                } else if (event.getAction() == DragEvent.ACTION_DRAG_ENDED) {
+                    if (!event.getResult()) {
+                        View view = (View) event.getLocalState();
+                        Command command = (Command) view.getTag();
+                        controller.removeCommand(command);
+                        commandAdapter.notifyDataSetChanged();
+                    }
+                }
+
+                return true;
+            }
+        });
+    }
+
+    private void addCommand(Command command) {
+        controller.addCommand(command);
+        commandAdapter.notifyDataSetChanged();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        try {
-            socket.connect();
-            os = socket.getOutputStream();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        controller.open();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        try {
-            socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        controller.close();
     }
 
     @Override
@@ -164,7 +163,10 @@ public class ButtonPanelActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_disconnect) {
+            controller.close();
+            Intent returnToListIntent = new Intent(this, MainActivity.class);
+            startActivity(returnToListIntent);
             return true;
         }
 

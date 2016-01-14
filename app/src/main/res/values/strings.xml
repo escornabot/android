@@ -1,8 +1,11 @@
 <resources>
-    <string name="app_name">BTRemote</string>
+    <string name="app_name" translatable="false">EscornaMote</string>
 
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_disconnect">Disconnect</string>
     <string name="title_activity_button_panel">Control Panel</string>
     <string name="connected_to">Connected to %1$s</string>
+    <string name="choose_an_escornabot">Choose an escornabot to control</string>
+    <string name="no_devices">No Bluetooth Escornabots found\nSwipe to update</string>
+    <string name="interactive_mode">Button panel mode</string>
+    <string name="unknow_device">Unknow device</string>
 </resources>

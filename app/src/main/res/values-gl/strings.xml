@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_settings">Configuración</string>
+    <string name="choose_an_escornabot">Elixe un escornabot que controlar</string>
+    <string name="connected_to">Conectado a %1$s</string>
+    <string name="no_devices">Non se detectan escornabots preto\nDesliza para actualizar</string>
+    <string name="title_activity_button_panel">Panel de Control</string>
+</resources>

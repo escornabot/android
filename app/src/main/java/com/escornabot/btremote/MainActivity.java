@@ -2,35 +2,29 @@ package com.escornabot.btremote;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.ParcelUuid;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.UUID;
 
 
 public class MainActivity extends ActionBarActivity {
 
     private BluetoothDevicesAdapter adapter;
-    UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
-    private ListView devicesList;
+    private SwipeRefreshLayout refreshLayout;
 
-    private boolean discovering = false;
     BluetoothAdapter btAdapter;
 
     @Override
@@ -38,18 +32,35 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        devicesList = (ListView) findViewById(R.id.foundDevices);
+        refreshLayout = (SwipeRefreshLayout) findViewById(R.id.refresh);
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                if (btAdapter != null && btAdapter.isEnabled()) {
+                    btAdapter.startDiscovery();
+                }
+            }
+        });
+
+        refreshLayout.setRefreshing(true);
+
+        ListView devicesList = (ListView) findViewById(R.id.foundDevices);
         View emptyView = findViewById(R.id.empty);
         devicesList.setEmptyView(emptyView);
 
         adapter = new BluetoothDevicesAdapter(this, R.layout.item_bt_device,
-                new ArrayList<BluetoothDevice>());
+                new ArrayList<Escornabot>());
+
+        // Escornabot testBot = new Escornabot();
+        // testBot.setName("Test bot");
+        // adapter.add(testBot);
+
         devicesList.setAdapter(adapter);
 
         devicesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                BluetoothDevice device = adapter.getItem(position);
+                Escornabot device = adapter.getItem(position);
 
                 try {
                     Intent startControlPanel = new Intent(getBaseContext(), ButtonPanelActivity.class);
@@ -71,15 +82,21 @@ public class MainActivity extends ActionBarActivity {
             String action = intent.getAction();
             if (action.equalsIgnoreCase(BluetoothDevice.ACTION_FOUND)) {
                 Bundle extras = intent.getExtras();
-                BluetoothDevice device = extras.getParcelable(BluetoothDevice.EXTRA_DEVICE);
-                adapter.add(device);
+
+                Escornabot escornabot = new Escornabot(
+                        (BluetoothDevice) extras.getParcelable(BluetoothDevice.EXTRA_DEVICE));
+                if (escornabot.getName().isEmpty()) {
+                    escornabot.setName(getString(R.string.unknow_device));
+                }
+
+                adapter.add(escornabot);
                 adapter.notifyDataSetChanged();
-                Log.d("BTREMOTE", "new device found " + device.getName());
+
+                Log.d("BTREMOTE", "new device found " + escornabot.getName());
             } else if (action.equalsIgnoreCase(BluetoothAdapter.ACTION_DISCOVERY_STARTED)) {
-                discovering = true;
                 Log.d("BTREMOTE", "discovery process started ");
             } else if (action.equalsIgnoreCase(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
-                discovering = false;
+                refreshLayout.setRefreshing(false);
                 Log.d("BTREMOTE", "discovery process finished");
             }
         }
@@ -88,6 +105,9 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        adapter.clear();
+        adapter.notifyDataSetChanged();
+
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
@@ -105,28 +125,4 @@ public class MainActivity extends ActionBarActivity {
         super.onPause();
         unregisterReceiver(btDeviceFoundReceiver);
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-
 }
