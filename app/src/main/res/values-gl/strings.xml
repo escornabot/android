@@ -5,4 +5,8 @@
     <string name="connected_to">Conectado a %1$s</string>
     <string name="no_devices">Non se detectan escornabots preto\nDesliza para actualizar</string>
     <string name="title_activity_button_panel">Panel de Control</string>
+    <string name="action_disconnect">Desconectar</string>
+    <string name="interactive_mode">Modo botonera</string>
+    <string name="unknow_device">Dispositivo descoñecido</string>
+    <string name="searching">Na procura de escornabots...</string>
 </resources>

@@ -2,7 +2,8 @@ package com.escornabot.btremote;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.DragEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,7 +16,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 
-public class ButtonPanelActivity extends ActionBarActivity {
+public class ButtonPanelActivity extends AppCompatActivity {
 
     public static final String EXTRA_DEVICE = "EXTRA_DEVICE";
     private EscornabotController controller;
@@ -27,6 +28,9 @@ public class ButtonPanelActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_button_panel);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         Escornabot escornabot = getIntent().getParcelableExtra(EXTRA_DEVICE);
         controller = new EscornabotController(escornabot.getBtInterface());

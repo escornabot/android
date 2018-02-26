@@ -7,4 +7,6 @@
     <string name="title_activity_button_panel">Panel de Control</string>
     <string name="interactive_mode">Modo botonera</string>
     <string name="unknow_device">Dispositivo desconocido</string>
+    <string name="action_settings">Configuración</string>
+    <string name="searching">Buscando escornabots...</string>
 </resources>

@@ -8,4 +8,6 @@
     <string name="no_devices">No Bluetooth Escornabots found\nSwipe to update</string>
     <string name="interactive_mode">Button panel mode</string>
     <string name="unknow_device">Unknow device</string>
+    <string name="searching">Trying to find some escornabot...</string>
+    <string name="action_settings">Settings</string>
 </resources>
