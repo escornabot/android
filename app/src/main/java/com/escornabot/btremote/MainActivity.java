@@ -1,12 +1,16 @@
 package com.escornabot.btremote;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -19,6 +23,8 @@ import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity {
+    static final int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 1;
+
 
     private BluetoothDevicesAdapter adapter;
     private SwipeRefreshLayout refreshLayout;
@@ -39,9 +45,7 @@ public class MainActivity extends AppCompatActivity {
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                if (btAdapter != null && btAdapter.isEnabled()) {
-                    btAdapter.startDiscovery();
-                }
+                lookForDevices();
             }
         });
 
@@ -109,6 +113,22 @@ public class MainActivity extends AppCompatActivity {
     };
 
     @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    btAdapter.startDiscovery();
+                } else {
+                    Toast.makeText(this, R.string.not_permission, Toast.LENGTH_LONG).show();
+                }
+            }
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         adapter.clear();
@@ -120,15 +140,25 @@ public class MainActivity extends AppCompatActivity {
 
         registerReceiver(btDeviceFoundReceiver, filter);
 
-        if (btAdapter != null && btAdapter.isEnabled()) {
-            btAdapter.startDiscovery();
-        }
-
+        lookForDevices();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         unregisterReceiver(btDeviceFoundReceiver);
+    }
+
+    private void lookForDevices() {
+        if (btAdapter != null && btAdapter.isEnabled()) {
+            if (ContextCompat.checkSelfPermission(MainActivity.this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                        MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
+            } else {
+                btAdapter.startDiscovery();
+            }
+        }
     }
 }

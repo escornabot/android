@@ -9,4 +9,5 @@
     <string name="unknow_device">Dispositivo desconocido</string>
     <string name="action_settings">Configuración</string>
     <string name="searching">Buscando escornabots...</string>
+    <string name="not_permission">No puedo encontrar escornabots sin permisos</string>
 </resources>

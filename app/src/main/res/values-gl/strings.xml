@@ -9,4 +9,5 @@
     <string name="interactive_mode">Modo botonera</string>
     <string name="unknow_device">Dispositivo descoñecido</string>
     <string name="searching">Na procura de escornabots...</string>
+    <string name="not_permission">Non podo atopar escornabots se non me das permisos</string>
 </resources>
